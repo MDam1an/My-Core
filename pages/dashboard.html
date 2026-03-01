@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyCore — Dashboard</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+<div class="bg-orb bg-orb-3"></div>
+
+<div class="layout">
+  <!-- Sidebar Backdrop -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon glow-pulse">⚡</div>
+      <div class="logo-text">My<span>Core</span></div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <a class="nav-item active" data-page="dashboard" href="dashboard.html">
+        <i class="fas fa-th-large"></i><span class="nav-label-text">Dashboard</span>
+      </a>
+      <a class="nav-item" data-page="financas" href="financas.html">
+        <i class="fas fa-wallet"></i><span class="nav-label-text">Finanças</span>
+      </a>
+      <div class="nav-section-label">Crescimento</div>
+      <a class="nav-item" data-page="metas" href="metas.html">
+        <i class="fas fa-bullseye"></i><span class="nav-label-text">Metas & Objetivos</span>
+        <span class="nav-badge" id="badge-metas">0</span>
+      </a>
+      <a class="nav-item" data-page="desenvolvimento" href="desenvolvimento.html">
+        <i class="fas fa-seedling"></i><span class="nav-label-text">Desenvolvimento</span>
+      </a>
+      <a class="nav-item" data-page="conquistas" href="conquistas.html">
+        <i class="fas fa-trophy"></i><span class="nav-label-text">Conquistas</span>
+      </a>
+      <div class="nav-section-label">Análise</div>
+      <a class="nav-item" data-page="relatorios" href="relatorios.html">
+        <i class="fas fa-chart-line"></i><span class="nav-label-text">Relatórios</span>
+      </a>
+      <a class="nav-item" data-page="configuracoes" href="configuracoes.html">
+        <i class="fas fa-cog"></i><span class="nav-label-text">Configurações</span>
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <button class="toggle-sidebar-btn" id="sidebar-toggle-btn">
+        <i class="fas fa-chevron-left" id="sidebar-toggle-icon"></i>
+        <span class="nav-label-text">Recolher menu</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="main" id="main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <button class="hamburger-btn" id="hamburger-btn"><i class="fas fa-bars"></i></button>
+      <div class="topbar-title">Dashboard</div>
+      <div class="topbar-date" id="topbar-date"></div>
+      <div class="topbar-score">
+        <i class="fas fa-star" style="color:var(--accent2)"></i>
+        <span style="color:var(--text2);font-size:13px">Life Score</span>
+        <span class="score-badge" id="life-score-top">—</span>
+      </div>
+      <div class="topbar-user" id="topbar-user-btn" onclick="Auth.logout()">
+        <i class="fas fa-user-circle" style="color:var(--accent)"></i>
+        <span id="topbar-username">—</span>
+        <i class="fas fa-sign-out-alt" style="color:var(--text3);margin-left:4px" title="Sair"></i>
+      </div>
+      <button class="quick-add-btn" onclick="openQuickAdd()">
+        <i class="fas fa-plus"></i><span class="btn-text"> Lançamento</span>
+      </button>
+    </header>
+
+    <!-- Content -->
+    <main class="content" id="main-content">
+      <div class="page-body">
+
+        <!-- Greeting -->
+        <div style="margin-bottom:28px">
+          <div style="font-family:var(--font-display);font-size:30px" id="greeting-text">Olá! 👋</div>
+          <div style="color:var(--text2);font-size:14px;margin-top:4px" id="greeting-sub">Seu painel de controle de vida</div>
+        </div>
+
+        <!-- Stat cards -->
+        <div class="grid-4" style="margin-bottom:20px">
+          <div class="card">
+            <div class="card-glow"></div>
+            <div class="card-title">Saldo Atual</div>
+            <div class="stat-value" id="dash-saldo" style="color:var(--accent3)">R$ 0,00</div>
+            <div class="stat-label">Receitas − Despesas</div>
+          </div>
+          <div class="card">
+            <div class="card-glow"></div>
+            <div class="card-title">Receitas</div>
+            <div class="stat-value" id="dash-receita" style="color:var(--accent3)">R$ 0,00</div>
+            <div class="stat-label">Total recebido</div>
+          </div>
+          <div class="card">
+            <div class="card-glow"></div>
+            <div class="card-title">Despesas</div>
+            <div class="stat-value" id="dash-despesa" style="color:var(--accent4)">R$ 0,00</div>
+            <div class="stat-label">Total gasto</div>
+          </div>
+          <div class="card">
+            <div class="card-glow"></div>
+            <div class="card-title">Metas Ativas</div>
+            <div class="stat-value" id="dash-metas" style="color:var(--accent)">0</div>
+            <div class="stat-label" id="dash-metas-pct">— em andamento</div>
+          </div>
+        </div>
+
+        <!-- Score + Chart -->
+        <div class="grid-2" style="margin-bottom:20px">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Life Score</span></div>
+            <div class="score-section">
+              <div class="score-ring-wrap">
+                <svg width="120" height="120">
+                  <circle cx="60" cy="60" r="52" fill="none" stroke="var(--surface)" stroke-width="10"/>
+                  <circle cx="60" cy="60" r="52" fill="none" stroke="var(--accent2)" stroke-width="10"
+                    stroke-dasharray="326.7" id="score-ring-bar" stroke-dashoffset="326.7"
+                    stroke-linecap="round" style="transform:rotate(-90deg);transform-origin:60px 60px;transition:stroke-dashoffset 1s ease"/>
+                </svg>
+                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">
+                  <div style="font-family:var(--font-mono);font-size:26px;font-weight:700;color:var(--accent2)" id="score-main-num">—</div>
+                  <div style="font-size:10px;color:var(--text3)">/ 99</div>
+                </div>
+              </div>
+              <div class="score-details">
+                <div class="score-sub">Pontuação de vida baseada em finanças, metas, hábitos e desenvolvimento.</div>
+                <div class="score-items">
+                  <div class="score-item">
+                    <div class="score-dot" style="background:var(--accent3)"></div>
+                    <span class="score-item-label">Finanças</span>
+                    <span class="score-item-val" id="score-fin">—</span>
+                  </div>
+                  <div class="score-item">
+                    <div class="score-dot" style="background:var(--accent)"></div>
+                    <span class="score-item-label">Metas</span>
+                    <span class="score-item-val" id="score-goal">—</span>
+                  </div>
+                  <div class="score-item">
+                    <div class="score-dot" style="background:var(--accent2)"></div>
+                    <span class="score-item-label">Hábitos</span>
+                    <span class="score-item-val" id="score-habit">—</span>
+                  </div>
+                  <div class="score-item">
+                    <div class="score-dot" style="background:#9B8FFF"></div>
+                    <span class="score-item-label">Desenvolvimento</span>
+                    <span class="score-item-val" id="score-dev">—</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><span class="card-title">Fluxo Financeiro</span></div>
+            <div class="chart-wrap" style="height:220px">
+              <canvas id="dash-chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Habits + Transactions -->
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Hábitos de Hoje</span>
+              <a href="desenvolvimento.html" style="font-size:12px;color:var(--accent);text-decoration:none">Ver todos</a>
+            </div>
+            <div id="dash-habits"></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Últimas Transações</span>
+              <a href="financas.html" style="font-size:12px;color:var(--accent);text-decoration:none">Ver todas</a>
+            </div>
+            <div class="tx-list" id="dash-transactions"></div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal-box"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toast-icon">✅</span>
+  <span id="toast-msg"></span>
+</div>
+
+<script src="../js/auth.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/utils.js"></script>
+<script>
+// ── Auth guard ──
+const currentUser = Auth.requireAuth('../index.html');
+if (!currentUser) throw new Error('not authenticated');
+
+const data = DB.load(currentUser.email);
+
+// ── Init ──
+updateTopbarDate();
+updateTopbarUser(currentUser);
+initSidebar();
+initModalOverlay();
+initSmoothScroll('main-content');
+setChartDefaults();
+
+// ── Greeting (with time of day) ──
+function renderGreeting() {
+  const hour = new Date().getHours();
+  const period = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
+  const firstName = data.config.name ? data.config.name.split(' ')[0] : currentUser.name.split(' ')[0];
+  document.getElementById('greeting-text').textContent = `Olá, ${firstName}! 👋`;
+  document.getElementById('greeting-sub').textContent = `${period}! Aqui está seu painel de controle.`;
+}
+
+// ── Stats ──
+function renderStats() {
+  const rec = data.transactions.filter(t => t.type === 'receita').reduce((s, t) => s + t.val, 0);
+  const dep = data.transactions.filter(t => t.type === 'despesa').reduce((s, t) => s + t.val, 0);
+  const saldo = rec - dep;
+
+  document.getElementById('dash-saldo').textContent = fmtCurrency(saldo);
+  document.getElementById('dash-saldo').style.color = saldo >= 0 ? 'var(--accent3)' : 'var(--accent4)';
+  document.getElementById('dash-receita').textContent = fmtCurrency(rec);
+  document.getElementById('dash-despesa').textContent = fmtCurrency(dep);
+  document.getElementById('dash-metas').textContent = data.goals.length;
+
+  const activeGoals = data.goals.filter(g => g.progress < 100);
+  const avgProg = data.goals.length
+    ? Math.round(data.goals.reduce((s, g) => s + g.progress, 0) / data.goals.length)
+    : 0;
+  document.getElementById('dash-metas-pct').textContent = `${avgProg}% progresso médio`;
+
+  // Badge
+  const badge = document.getElementById('badge-metas');
+  if (badge) {
+    badge.textContent = activeGoals.length;
+    badge.classList.toggle('zero', activeGoals.length === 0);
+  }
+}
+
+// ── Score ──
+function renderScore() {
+  const s = calcLifeScore(data);
+  document.getElementById('score-main-num').textContent = s.total;
+  document.getElementById('life-score-top').textContent = s.total;
+  document.getElementById('score-fin').textContent = s.finScore + '/25';
+  document.getElementById('score-goal').textContent = s.goalScore + '/25';
+  document.getElementById('score-habit').textContent = s.habitScore + '/25';
+  document.getElementById('score-dev').textContent = s.devScore + '/25';
+
+  // Animate ring
+  const circumference = 326.7;
+  const offset = circumference - (s.total / 99) * circumference;
+  document.getElementById('score-ring-bar').style.strokeDashoffset = offset;
+}
+
+// ── Habits preview ──
+function renderDashHabits() {
+  const el = document.getElementById('dash-habits');
+  if (!el) return;
+  const habits = data.habits.slice(0, 4);
+  if (!habits.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🌱</div><p>Nenhum hábito ainda. <a href="desenvolvimento.html" style="color:var(--accent)">Adicionar</a></p></div>`;
+    return;
+  }
+  const td = today();
+  el.innerHTML = habits.map(h => {
+    const checked = h.checkedDates?.includes(td);
+    return `
+    <div class="habit-item">
+      <div class="habit-icon">${h.emoji}</div>
+      <div class="habit-info">
+        <div class="habit-name">${h.name}</div>
+        <div class="habit-streak">🔥 ${h.streak} dias</div>
+      </div>
+      <div class="habit-check ${checked ? 'checked' : ''}" onclick="toggleHabitDash(${h.id})">
+        <i class="fas fa-check"></i>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleHabitDash(id) {
+  const h = data.habits.find(h => h.id === id);
+  if (!h) return;
+  const td = today();
+  if (h.checkedDates?.includes(td)) {
+    h.checkedDates = h.checkedDates.filter(d => d !== td);
+    h.streak = Math.max(0, h.streak - 1);
+  } else {
+    if (!h.checkedDates) h.checkedDates = [];
+    h.checkedDates.push(td);
+    h.streak++;
+  }
+  DB.save();
+  renderDashHabits();
+  renderScore();
+  showToast(h.checkedDates.includes(td) ? `${h.emoji} ${h.name} marcado!` : `${h.name} desmarcado`, '✅');
+}
+
+// ── Transactions preview ──
+function renderDashTransactions() {
+  const el = document.getElementById('dash-transactions');
+  if (!el) return;
+  const items = data.transactions.slice(0, 5);
+  if (!items.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">💰</div><p>Nenhuma transação. <a href="financas.html" style="color:var(--accent)">Adicionar</a></p></div>`;
+    return;
+  }
+  const icons = { receita: '💰', despesa: '💸', investimento: '📈' };
+  const colors = { receita: 'rgba(0,217,165,0.15)', despesa: 'rgba(255,107,107,0.15)', investimento: 'rgba(108,99,255,0.15)' };
+  el.innerHTML = items.map(t => `
+    <div class="tx-item">
+      <div class="tx-icon" style="background:${colors[t.type]}">${icons[t.type]}</div>
+      <div class="tx-info">
+        <div class="tx-name">${t.desc}</div>
+        <div class="tx-cat">${t.cat}</div>
+      </div>
+      <div class="tx-date">${fmtDate(t.date)}</div>
+      <div class="tx-amount ${t.type === 'receita' ? 'income' : t.type === 'investimento' ? 'invest' : 'expense'}">
+        ${t.type === 'receita' ? '+' : t.type === 'investimento' ? '' : '−'}${fmtCurrency(t.val)}
+      </div>
+    </div>`).join('');
+}
+
+// ── Chart ──
+let dashChart;
+function renderDashChart() {
+  destroyChart(dashChart);
+  const ctx = document.getElementById('dash-chart');
+  if (!ctx) return;
+
+  // Group real data by month
+  const monthlyRec = new Array(6).fill(0);
+  const monthlyDep = new Array(6).fill(0);
+  const now = new Date();
+  const labels = [];
+
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    labels.push(d.toLocaleDateString('pt-BR', { month: 'short' }));
+    const ym = d.toISOString().substring(0, 7);
+    data.transactions.forEach(t => {
+      if (!t.date || !t.date.startsWith(ym)) return;
+      if (t.type === 'receita') monthlyRec[5 - i] += t.val;
+      if (t.type === 'despesa') monthlyDep[5 - i] += t.val;
+    });
+  }
+
+  dashChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Receitas', data: monthlyRec, borderColor: '#00D9A5', backgroundColor: 'rgba(0,217,165,0.08)', tension: 0.4, fill: true, pointBackgroundColor: '#00D9A5', pointRadius: 4 },
+        { label: 'Despesas', data: monthlyDep, borderColor: '#FF6B6B', backgroundColor: 'rgba(255,107,107,0.08)', tension: 0.4, fill: true, pointBackgroundColor: '#FF6B6B', pointRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#9090B0', boxWidth: 10 } } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#5a5a7a' } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#5a5a7a', callback: v => 'R$' + v.toLocaleString('pt-BR') } }
+      }
+    }
+  });
+}
+
+// ── Quick Add Modal ──
+function openQuickAdd() {
+  openModal(`
+    <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+    <div class="modal-title">⚡ Lançamento Rápido</div>
+    <div class="chip-select" id="quick-type-chips" style="margin-bottom:18px">
+      <div class="chip selected" onclick="selectChip(this,'quick-type-chips')">💰 Receita</div>
+      <div class="chip" onclick="selectChip(this,'quick-type-chips')">💸 Despesa</div>
+      <div class="chip" onclick="selectChip(this,'quick-type-chips')">📈 Investimento</div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Valor</label>
+        <input type="number" class="form-control" id="q-val" placeholder="0,00" min="0" step="0.01"></div>
+      <div class="form-group"><label class="form-label">Data</label>
+        <input type="date" class="form-control" id="q-date" value="${today()}"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Descrição</label>
+      <input type="text" class="form-control" id="q-desc" placeholder="Ex: Salário, Aluguel..."></div>
+    <div class="form-group"><label class="form-label">Categoria</label>
+      <select class="form-control" id="q-cat">
+        <option>🏠 Moradia</option><option>🍔 Alimentação</option><option>🚗 Transporte</option>
+        <option>💼 Salário</option><option>💻 Freelance</option><option>🏥 Saúde</option>
+        <option>📚 Educação</option><option>🎉 Lazer</option><option>💳 Dívidas</option>
+        <option>📈 Investimento</option><option>🔧 Outros</option>
+      </select>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveQuickTx()">Registrar</button>
+    </div>`);
+}
+
+function saveQuickTx() {
+  const chip = document.querySelector('#quick-type-chips .chip.selected')?.textContent || '';
+  const type = chip.includes('Receita') ? 'receita' : chip.includes('Despesa') ? 'despesa' : 'investimento';
+  const val  = parseFloat(document.getElementById('q-val')?.value);
+  const date = document.getElementById('q-date')?.value;
+  const desc = document.getElementById('q-desc')?.value?.trim();
+  const cat  = document.getElementById('q-cat')?.value;
+
+  if (!val || val <= 0) { showToast('Informe um valor válido!', '⚠️'); return; }
+  if (!desc) { showToast('Informe uma descrição!', '⚠️'); return; }
+
+  data.transactions.unshift({ id: Date.now(), type, val, date, desc, cat });
+  DB.save();
+  closeModal();
+  renderAll();
+  showToast('Transação registrada!', type === 'receita' ? '💰' : type === 'investimento' ? '📈' : '💸');
+}
+
+function renderAll() {
+  renderGreeting();
+  renderStats();
+  renderScore();
+  renderDashHabits();
+  renderDashTransactions();
+  renderDashChart();
+}
+
+renderAll();
+</script>
+</body>
+</html>

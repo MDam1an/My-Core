@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyCore — Metas</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="bg-orb bg-orb-1"></div><div class="bg-orb bg-orb-2"></div><div class="bg-orb bg-orb-3"></div>
+
+<div class="layout">
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><div class="logo-icon glow-pulse">⚡</div><div class="logo-text">My<span>Core</span></div></div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <a class="nav-item" href="dashboard.html"><i class="fas fa-th-large"></i><span class="nav-label-text">Dashboard</span></a>
+      <a class="nav-item" href="financas.html"><i class="fas fa-wallet"></i><span class="nav-label-text">Finanças</span></a>
+      <div class="nav-section-label">Crescimento</div>
+      <a class="nav-item active" href="metas.html"><i class="fas fa-bullseye"></i><span class="nav-label-text">Metas & Objetivos</span><span class="nav-badge" id="badge-metas">0</span></a>
+      <a class="nav-item" href="desenvolvimento.html"><i class="fas fa-seedling"></i><span class="nav-label-text">Desenvolvimento</span></a>
+      <a class="nav-item" href="conquistas.html"><i class="fas fa-trophy"></i><span class="nav-label-text">Conquistas</span></a>
+      <div class="nav-section-label">Análise</div>
+      <a class="nav-item" href="relatorios.html"><i class="fas fa-chart-line"></i><span class="nav-label-text">Relatórios</span></a>
+      <a class="nav-item" href="configuracoes.html"><i class="fas fa-cog"></i><span class="nav-label-text">Configurações</span></a>
+    </div>
+    <div class="sidebar-footer">
+      <button class="toggle-sidebar-btn" id="sidebar-toggle-btn"><i class="fas fa-chevron-left" id="sidebar-toggle-icon"></i><span class="nav-label-text">Recolher menu</span></button>
+    </div>
+  </nav>
+
+  <div class="main" id="main">
+    <header class="topbar">
+      <button class="hamburger-btn" id="hamburger-btn"><i class="fas fa-bars"></i></button>
+      <div class="topbar-title">Metas & Objetivos</div>
+      <div class="topbar-date" id="topbar-date"></div>
+      <div class="topbar-score"><i class="fas fa-star" style="color:var(--accent2)"></i><span style="color:var(--text2);font-size:13px">Life Score</span><span class="score-badge" id="life-score-top">—</span></div>
+      <div class="topbar-user" onclick="Auth.logout()"><i class="fas fa-user-circle" style="color:var(--accent)"></i><span id="topbar-username">—</span><i class="fas fa-sign-out-alt" style="color:var(--text3);margin-left:4px"></i></div>
+    </header>
+
+    <main class="content" id="main-content">
+      <div class="page-body">
+        <div class="section-header">
+          <div><div class="section-title">Metas & Objetivos</div><div class="section-sub">Seus sonhos com prazo, valor e progresso automático.</div></div>
+          <button class="btn btn-primary" onclick="openMetaModal()"><i class="fas fa-plus"></i> Nova Meta</button>
+        </div>
+
+        <!-- Summary -->
+        <div class="grid-3" style="margin-bottom:20px">
+          <div class="card"><div class="card-glow"></div><div class="card-title">Metas Ativas</div><div class="stat-value" id="meta-count" style="color:var(--accent)">0</div></div>
+          <div class="card"><div class="card-glow"></div><div class="card-title">Progresso Médio</div><div class="stat-value" id="meta-avg" style="color:var(--accent2)">0%</div></div>
+          <div class="card"><div class="card-glow"></div><div class="card-title">Concluídas</div><div class="stat-value" id="meta-done" style="color:var(--accent3)">0</div></div>
+        </div>
+
+        <div class="grid-3" id="goals-grid"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay"><div class="modal" id="modal-box"></div></div>
+<div class="toast" id="toast"><span class="toast-icon" id="toast-icon">✅</span><span id="toast-msg"></span></div>
+
+<script src="../js/auth.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/utils.js"></script>
+<script>
+const currentUser = Auth.requireAuth('../index.html');
+if (!currentUser) throw new Error();
+const data = DB.load(currentUser.email);
+
+updateTopbarDate(); updateTopbarUser(currentUser); initSidebar(); initModalOverlay(); initSmoothScroll('main-content');
+
+document.getElementById('life-score-top').textContent = calcLifeScore(data).total;
+
+function renderSummary() {
+  const active = data.goals.filter(g => g.progress < 100).length;
+  const done   = data.goals.filter(g => g.progress >= 100).length;
+  const avg    = data.goals.length ? Math.round(data.goals.reduce((s, g) => s + g.progress, 0) / data.goals.length) : 0;
+  document.getElementById('meta-count').textContent = active;
+  document.getElementById('meta-avg').textContent   = avg + '%';
+  document.getElementById('meta-done').textContent  = done;
+  const badge = document.getElementById('badge-metas');
+  if (badge) { badge.textContent = active; badge.classList.toggle('zero', active === 0); }
+}
+
+function calcGoalProgress(g) {
+  if (g.target > 0) {
+    const saved = g.saved || 0;
+    return Math.min(100, Math.round((saved / g.target) * 100));
+  }
+  return g.progress || 0;
+}
+
+function renderGoals() {
+  const grid = document.getElementById('goals-grid');
+  if (!grid) return;
+
+  if (!data.goals.length) {
+    grid.innerHTML = `<div class="card col-3"><div class="empty-state"><div class="empty-icon">🎯</div><h3>Nenhuma meta criada</h3><p>Crie sua primeira meta e comece a transformar sonhos em conquistas</p><button class="btn btn-primary" style="margin-top:16px" onclick="openMetaModal()">Criar primeira meta</button></div></div>`;
+    return;
+  }
+
+  grid.innerHTML = data.goals.map(g => {
+    const progress = calcGoalProgress(g);
+    const pctColor = progress >= 100 ? 'var(--accent2)' : progress >= 70 ? 'var(--accent3)' : progress >= 40 ? 'var(--accent)' : 'var(--accent4)';
+    const barClass = progress >= 100 ? 'gold' : progress >= 70 ? 'green' : progress >= 40 ? '' : 'red';
+    const dl = daysLeft(g.deadline);
+    const dlText = dl === null ? 'Sem prazo' : dl > 0 ? `${dl} dias restantes` : dl === 0 ? 'Vence hoje!' : 'Prazo vencido';
+
+    // Piggy bank section (only for financial goals with target)
+    const piggySection = g.target > 0 ? `
+      <div class="goal-piggy">
+        <div style="width:100%;display:flex;justify-content:space-between;align-items:center">
+          <span class="piggy-label">🐷 Cofrinho</span>
+          <span class="piggy-values" style="color:var(--accent3)">${fmtCurrency(g.saved || 0)} <span style="color:var(--text3)">/ ${fmtCurrency(g.target)}</span></span>
+        </div>
+        <div class="piggy-add">
+          <input type="number" class="piggy-input" id="piggy-${g.id}" placeholder="Adicionar valor..." min="0" step="0.01">
+          <button class="piggy-btn" onclick="addToPiggy(${g.id})">+ Guardar</button>
+        </div>
+      </div>` : `
+      <div style="display:flex;align-items:center;gap:8px;margin-top:12px">
+        <input type="range" min="0" max="100" value="${g.progress}" style="flex:1;accent-color:var(--accent)"
+          oninput="liveUpdateGoal(${g.id},this.value);syncGoalNum(${g.id},this.value)"
+          onchange="saveGoalProgress(${g.id},this.value)" id="pslider-${g.id}">
+        <input type="number" min="0" max="100" value="${g.progress}" id="pnum-${g.id}"
+          style="width:55px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:5px 8px;color:var(--text);font-family:var(--font-mono);font-size:13px;text-align:center;outline:none"
+          oninput="syncGoalSlider(${g.id},this.value);liveUpdateGoal(${g.id},this.value)"
+          onchange="saveGoalProgress(${g.id},this.value)">
+        <span style="color:var(--text3);font-size:12px;font-family:var(--font-mono)">%</span>
+      </div>`;
+
+    return `
+    <div class="goal-card" id="goal-card-${g.id}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div class="goal-emoji">${g.emoji}</div>
+        <button onclick="deleteGoal(${g.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;padding:4px"><i class="fas fa-trash"></i></button>
+      </div>
+      <div class="goal-name">${g.name}</div>
+      <div class="goal-desc">${g.desc || ''}</div>
+      <div class="progress-wrap"><div class="progress-bar ${barClass}" id="pbar-${g.id}" style="width:${progress}%"></div></div>
+      <div class="goal-nums">
+        <span>${dlText}</span>
+        <span class="goal-pct" id="ppct-${g.id}" style="color:${pctColor}">${progress}%</span>
+      </div>
+      ${piggySection}
+    </div>`;
+  }).join('');
+}
+
+function liveUpdateGoal(id, val) {
+  const v = Math.min(100, Math.max(0, parseInt(val) || 0));
+  const bar = document.getElementById('pbar-' + id);
+  const pct = document.getElementById('ppct-' + id);
+  if (bar) bar.style.width = v + '%';
+  if (pct) {
+    pct.textContent = v + '%';
+    pct.style.color = v >= 100 ? 'var(--accent2)' : v >= 70 ? 'var(--accent3)' : v >= 40 ? 'var(--accent)' : 'var(--accent4)';
+  }
+}
+
+function syncGoalNum(id, val)    { const el = document.getElementById('pnum-' + id); if (el) el.value = val; }
+function syncGoalSlider(id, val) {
+  const v = Math.min(100, Math.max(0, parseInt(val) || 0));
+  const el = document.getElementById('pslider-' + id);
+  if (el) el.value = v;
+  liveUpdateGoal(id, v);
+}
+
+function saveGoalProgress(id, val) {
+  const g = data.goals.find(g => g.id === id);
+  if (g) { g.progress = Math.min(100, Math.max(0, parseInt(val) || 0)); DB.save(); renderSummary(); }
+}
+
+function addToPiggy(id) {
+  const g = data.goals.find(g => g.id === id);
+  const input = document.getElementById('piggy-' + id);
+  if (!g || !input) return;
+  const amount = parseFloat(input.value);
+  if (!amount || amount <= 0) { showToast('Informe um valor!', '⚠️'); return; }
+  if (!g.saved) g.saved = 0;
+  g.saved = Math.min(g.target, g.saved + amount);
+  g.progress = calcGoalProgress(g); // auto-update progress
+  DB.save();
+  input.value = '';
+  renderGoals();
+  renderSummary();
+  showToast(`🐷 R$${amount.toFixed(2)} guardado para "${g.name}"!`, '💰');
+  if (g.progress >= 100) showToast(`🎉 Meta "${g.name}" concluída!`, '🏆');
+}
+
+function deleteGoal(id) {
+  if (!confirm('Remover esta meta?')) return;
+  data.goals = data.goals.filter(g => g.id !== id);
+  DB.save();
+  renderGoals();
+  renderSummary();
+}
+
+function openMetaModal() {
+  openModal(`
+    <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+    <div class="modal-title">🎯 Nova Meta</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nome da Meta</label>
+        <input type="text" class="form-control" id="g-name" placeholder="Ex: Viagem, Carro..."></div>
+      <div class="form-group"><label class="form-label">Emoji</label>
+        <input type="text" class="form-control" id="g-emoji" placeholder="🎯" maxlength="2"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Descrição</label>
+      <input type="text" class="form-control" id="g-desc" placeholder="Descreva sua meta..."></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Valor Alvo (R$) <small style="color:var(--text3)">(0 para meta sem valor)</small></label>
+        <input type="number" class="form-control" id="g-target" placeholder="0,00" min="0" step="0.01"></div>
+      <div class="form-group"><label class="form-label">Prazo</label>
+        <input type="date" class="form-control" id="g-deadline"></div>
+    </div>
+    <div class="form-group" id="g-progress-wrap">
+      <label class="form-label">Progresso Inicial (%) <small style="color:var(--text3)">(só para metas sem valor)</small></label>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+        <input type="range" min="0" max="100" value="0" style="flex:1;accent-color:var(--accent)" id="g-range" oninput="document.getElementById('g-pnum').value=this.value">
+        <input type="number" min="0" max="100" value="0" id="g-pnum" style="width:55px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:5px 8px;color:var(--text);font-family:var(--font-mono);font-size:13px;text-align:center;outline:none"
+          oninput="document.getElementById('g-range').value=Math.max(0,Math.min(100,+this.value||0))">
+        <span style="color:var(--text3);font-family:var(--font-mono)">%</span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveMeta()">Criar Meta</button>
+    </div>`);
+
+  // Hide progress if target > 0
+  document.getElementById('g-target')?.addEventListener('input', function() {
+    const wrap = document.getElementById('g-progress-wrap');
+    if (wrap) wrap.style.opacity = +this.value > 0 ? '0.4' : '1';
+  });
+}
+
+function saveMeta() {
+  const name     = document.getElementById('g-name')?.value?.trim();
+  const emoji    = document.getElementById('g-emoji')?.value?.trim() || '🎯';
+  const desc     = document.getElementById('g-desc')?.value?.trim();
+  const target   = parseFloat(document.getElementById('g-target')?.value) || 0;
+  const deadline = document.getElementById('g-deadline')?.value;
+  const progress = target > 0 ? 0 : (parseInt(document.getElementById('g-pnum')?.value) || 0);
+
+  if (!name) { showToast('Informe o nome da meta!', '⚠️'); return; }
+
+  data.goals.push({ id: Date.now(), name, emoji, desc, target, deadline, progress, saved: 0 });
+  DB.save();
+  closeModal();
+  renderGoals();
+  renderSummary();
+  showToast('Meta criada! 🎯', '🚀');
+}
+
+renderGoals();
+renderSummary();
+</script>
+</body>
+</html>

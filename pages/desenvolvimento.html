@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyCore — Desenvolvimento</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="bg-orb bg-orb-1"></div><div class="bg-orb bg-orb-2"></div><div class="bg-orb bg-orb-3"></div>
+
+<div class="layout">
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><div class="logo-icon glow-pulse">⚡</div><div class="logo-text">My<span>Core</span></div></div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <a class="nav-item" href="dashboard.html"><i class="fas fa-th-large"></i><span class="nav-label-text">Dashboard</span></a>
+      <a class="nav-item" href="financas.html"><i class="fas fa-wallet"></i><span class="nav-label-text">Finanças</span></a>
+      <div class="nav-section-label">Crescimento</div>
+      <a class="nav-item" href="metas.html"><i class="fas fa-bullseye"></i><span class="nav-label-text">Metas & Objetivos</span><span class="nav-badge" id="badge-metas">0</span></a>
+      <a class="nav-item active" href="desenvolvimento.html"><i class="fas fa-seedling"></i><span class="nav-label-text">Desenvolvimento</span></a>
+      <a class="nav-item" href="conquistas.html"><i class="fas fa-trophy"></i><span class="nav-label-text">Conquistas</span></a>
+      <div class="nav-section-label">Análise</div>
+      <a class="nav-item" href="relatorios.html"><i class="fas fa-chart-line"></i><span class="nav-label-text">Relatórios</span></a>
+      <a class="nav-item" href="configuracoes.html"><i class="fas fa-cog"></i><span class="nav-label-text">Configurações</span></a>
+    </div>
+    <div class="sidebar-footer">
+      <button class="toggle-sidebar-btn" id="sidebar-toggle-btn"><i class="fas fa-chevron-left" id="sidebar-toggle-icon"></i><span class="nav-label-text">Recolher menu</span></button>
+    </div>
+  </nav>
+
+  <div class="main" id="main">
+    <header class="topbar">
+      <button class="hamburger-btn" id="hamburger-btn"><i class="fas fa-bars"></i></button>
+      <div class="topbar-title">Desenvolvimento Pessoal</div>
+      <div class="topbar-date" id="topbar-date"></div>
+      <div class="topbar-score"><i class="fas fa-star" style="color:var(--accent2)"></i><span style="color:var(--text2);font-size:13px">Life Score</span><span class="score-badge" id="life-score-top">—</span></div>
+      <div class="topbar-user" onclick="Auth.logout()"><i class="fas fa-user-circle" style="color:var(--accent)"></i><span id="topbar-username">—</span><i class="fas fa-sign-out-alt" style="color:var(--text3);margin-left:4px"></i></div>
+    </header>
+
+    <main class="content" id="main-content">
+      <div class="page-body">
+        <div class="section-title" style="margin-bottom:4px">Desenvolvimento Pessoal</div>
+        <div class="section-sub" style="margin-bottom:24px">Hábitos, habilidades, aprendizados. Quem você está se tornando.</div>
+
+        <div class="grid-2" style="margin-bottom:20px">
+          <!-- Habits -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Hábitos Diários</span>
+              <button class="btn btn-ghost" style="padding:6px 14px;font-size:12px" onclick="openHabitModal()"><i class="fas fa-plus"></i> Novo</button>
+            </div>
+            <div id="habits-container"></div>
+          </div>
+
+          <!-- Radar balance chart -->
+          <div class="card">
+            <div class="card-header"><span class="card-title">Perfil de Equilíbrio</span></div>
+            <div class="radar-section">
+              <div style="flex-shrink:0">
+                <canvas id="radar-chart" width="200" height="200"></canvas>
+              </div>
+              <div class="radar-labels">
+                <div class="radar-label-item"><div class="radar-dot" style="background:#6C63FF"></div><div class="radar-label-name">Finanças</div><div class="radar-label-val" style="color:#6C63FF" id="rad-fin">—</div></div>
+                <div class="radar-label-item"><div class="radar-dot" style="background:#F0B429"></div><div class="radar-label-name">Carreira</div><div class="radar-label-val" style="color:#F0B429" id="rad-car">—</div></div>
+                <div class="radar-label-item"><div class="radar-dot" style="background:#00D9A5"></div><div class="radar-label-name">Saúde</div><div class="radar-label-val" style="color:#00D9A5" id="rad-sau">—</div></div>
+                <div class="radar-label-item"><div class="radar-dot" style="background:#FF6B6B"></div><div class="radar-label-name">Relacionamentos</div><div class="radar-label-val" style="color:#FF6B6B" id="rad-rel">—</div></div>
+                <div class="radar-label-item"><div class="radar-dot" style="background:#9B8FFF"></div><div class="radar-label-name">Conhecimento</div><div class="radar-label-val" style="color:#9B8FFF" id="rad-con">—</div></div>
+              </div>
+            </div>
+            <div style="margin-top:14px">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text3);margin-bottom:8px">Ajustar Valores</div>
+              <div id="radar-sliders"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <!-- Skills — editable bars -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Habilidades</span>
+              <button class="btn btn-ghost" style="padding:6px 14px;font-size:12px" onclick="openSkillModal()"><i class="fas fa-plus"></i> Adicionar</button>
+            </div>
+            <div id="skills-container"></div>
+          </div>
+
+          <!-- Diary -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Diário de Aprendizados</span>
+              <button class="btn btn-ghost" style="padding:6px 14px;font-size:12px" onclick="openDiaryModal()"><i class="fas fa-pen"></i> Escrever</button>
+            </div>
+            <div id="diary-container"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay"><div class="modal" id="modal-box"></div></div>
+<div class="toast" id="toast"><span class="toast-icon" id="toast-icon">✅</span><span id="toast-msg"></span></div>
+
+<script src="../js/auth.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/utils.js"></script>
+<script>
+const currentUser = Auth.requireAuth('../index.html');
+if (!currentUser) throw new Error();
+const data = DB.load(currentUser.email);
+
+updateTopbarDate(); updateTopbarUser(currentUser); initSidebar(); initModalOverlay(); initSmoothScroll('main-content'); setChartDefaults();
+document.getElementById('life-score-top').textContent = calcLifeScore(data).total;
+const badge = document.getElementById('badge-metas');
+if (badge) { badge.textContent = data.goals.filter(g => g.progress < 100).length; }
+
+// ── HABITS ──
+function renderHabits() {
+  const el = document.getElementById('habits-container');
+  if (!el) return;
+  if (!data.habits.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🌱</div><h3>Sem hábitos</h3><p>Adicione hábitos para rastrear seu crescimento diário.</p></div>`;
+    return;
+  }
+  const td = today();
+  el.innerHTML = data.habits.map(h => {
+    const checked = h.checkedDates?.includes(td);
+    const last7 = getLast7Days().map(d => h.checkedDates?.includes(d));
+    return `
+    <div class="habit-item">
+      <div class="habit-icon">${h.emoji}</div>
+      <div class="habit-info">
+        <div class="habit-name">${h.name}</div>
+        <div class="habit-streak">🔥 ${h.streak} dias seguidos</div>
+      </div>
+      <div class="habit-dots">${last7.map(d => `<div class="habit-dot ${d ? 'done' : ''}"></div>`).join('')}</div>
+      <div class="habit-check ${checked ? 'checked' : ''}" onclick="toggleHabit(${h.id})"><i class="fas fa-check"></i></div>
+      <button onclick="deleteHabit(${h.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;padding:4px;margin-left:2px"><i class="fas fa-trash" style="font-size:12px"></i></button>
+    </div>`;
+  }).join('');
+}
+
+function toggleHabit(id) {
+  const h = data.habits.find(h => h.id === id);
+  if (!h) return;
+  const td = today();
+  if (!h.checkedDates) h.checkedDates = [];
+  if (h.checkedDates.includes(td)) {
+    h.checkedDates = h.checkedDates.filter(d => d !== td);
+    h.streak = Math.max(0, h.streak - 1);
+  } else {
+    h.checkedDates.push(td);
+    h.streak++;
+  }
+  DB.save();
+  renderHabits();
+  document.getElementById('life-score-top').textContent = calcLifeScore(data).total;
+}
+
+function deleteHabit(id) {
+  if (!confirm('Remover este hábito?')) return;
+  data.habits = data.habits.filter(h => h.id !== id);
+  DB.save();
+  renderHabits();
+}
+
+function openHabitModal() {
+  openModal(`
+    <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+    <div class="modal-title">🌱 Novo Hábito</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nome</label>
+        <input type="text" class="form-control" id="h-name" placeholder="Ex: Exercício, Leitura..."></div>
+      <div class="form-group"><label class="form-label">Emoji</label>
+        <input type="text" class="form-control" id="h-emoji" placeholder="🏃" maxlength="2"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Categoria</label>
+      <select class="form-control" id="h-cat">
+        <option>💪 Saúde</option><option>🧠 Conhecimento</option><option>💼 Trabalho</option>
+        <option>🧘 Bem-estar</option><option>💰 Financeiro</option><option>🔧 Outros</option>
+      </select>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveHabit()">Criar Hábito</button>
+    </div>`);
+}
+
+function saveHabit() {
+  const name  = document.getElementById('h-name')?.value?.trim();
+  const emoji = document.getElementById('h-emoji')?.value?.trim() || '✅';
+  const cat   = document.getElementById('h-cat')?.value;
+  if (!name) { showToast('Informe o nome do hábito!', '⚠️'); return; }
+  data.habits.push({ id: Date.now(), name, emoji, cat, streak: 0, checkedDates: [] });
+  DB.save();
+  closeModal();
+  renderHabits();
+  showToast('Hábito criado! 🌱', '✅');
+}
+
+// ── SKILLS ──
+function renderSkills() {
+  const el = document.getElementById('skills-container');
+  if (!el) return;
+  if (!data.skills.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">⚡</div><h3>Sem habilidades</h3><p>Adicione e acompanhe seu nível em cada habilidade.</p></div>`;
+    return;
+  }
+  const levelColor = l => l >= 80 ? 'var(--accent3)' : l >= 50 ? 'var(--accent)' : 'var(--accent2)';
+  el.innerHTML = data.skills.map(s => `
+    <div class="skill-item">
+      <div class="skill-header">
+        <span>${s.emoji} ${s.name}</span>
+        <div class="skill-actions">
+          <span class="skill-level" id="skill-val-${s.id}">${s.level}/100</span>
+          <button class="skill-edit-btn" onclick="toggleSkillEdit(${s.id})">Editar</button>
+          <button onclick="deleteSkill(${s.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;padding:2px 4px"><i class="fas fa-trash" style="font-size:11px"></i></button>
+        </div>
+      </div>
+      <div class="progress-wrap"><div class="progress-bar" id="skill-bar-${s.id}" style="width:${s.level}%;background:${levelColor(s.level)}"></div></div>
+      <div id="skill-editor-${s.id}" style="display:none;margin-top:10px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="range" min="0" max="100" value="${s.level}" style="flex:1;accent-color:var(--accent)" id="skill-range-${s.id}"
+            oninput="liveSkill(${s.id},this.value)">
+          <input type="number" min="0" max="100" value="${s.level}" id="skill-num-${s.id}"
+            style="width:55px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:5px 8px;color:var(--text);font-family:var(--font-mono);font-size:13px;text-align:center;outline:none"
+            oninput="liveSkillNum(${s.id},this.value)">
+          <span style="color:var(--text3);font-size:12px">%</span>
+          <button class="btn btn-primary btn-icon" onclick="saveSkillLevel(${s.id})">✓</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleSkillEdit(id) {
+  const el = document.getElementById('skill-editor-' + id);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function liveSkill(id, val) {
+  const v = Math.min(100, Math.max(0, parseInt(val) || 0));
+  const bar = document.getElementById('skill-bar-' + id);
+  const lbl = document.getElementById('skill-val-' + id);
+  const num = document.getElementById('skill-num-' + id);
+  const levelColor = l => l >= 80 ? 'var(--accent3)' : l >= 50 ? 'var(--accent)' : 'var(--accent2)';
+  if (bar) bar.style.width = v + '%', bar.style.background = levelColor(v);
+  if (lbl) lbl.textContent = v + '/100';
+  if (num) num.value = v;
+}
+
+function liveSkillNum(id, val) {
+  const v = Math.min(100, Math.max(0, parseInt(val) || 0));
+  const range = document.getElementById('skill-range-' + id);
+  if (range) range.value = v;
+  liveSkill(id, v);
+}
+
+function saveSkillLevel(id) {
+  const s = data.skills.find(s => s.id === id);
+  const val = parseInt(document.getElementById('skill-range-' + id)?.value) || 0;
+  if (s) { s.level = Math.min(100, Math.max(0, val)); DB.save(); renderSkills(); document.getElementById('life-score-top').textContent = calcLifeScore(data).total; showToast(`${s.emoji} Nível de ${s.name} atualizado!`, '⚡'); }
+}
+
+function deleteSkill(id) {
+  data.skills = data.skills.filter(s => s.id !== id);
+  DB.save();
+  renderSkills();
+}
+
+function openSkillModal() {
+  openModal(`
+    <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+    <div class="modal-title">⚡ Nova Habilidade</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nome</label>
+        <input type="text" class="form-control" id="sk-name" placeholder="Ex: Python, Design..."></div>
+      <div class="form-group"><label class="form-label">Emoji</label>
+        <input type="text" class="form-control" id="sk-emoji" placeholder="💻" maxlength="2"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Nível Atual</label>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+        <input type="range" min="0" max="100" value="30" style="flex:1;accent-color:var(--accent)" id="sk-range" oninput="document.getElementById('sk-num').value=this.value">
+        <input type="number" min="0" max="100" value="30" id="sk-num" style="width:55px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:5px 8px;color:var(--text);font-family:var(--font-mono);font-size:13px;text-align:center;outline:none"
+          oninput="document.getElementById('sk-range').value=Math.max(0,Math.min(100,+this.value||0))">
+        <span style="color:var(--text3);font-family:var(--font-mono)">/100</span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveSkill()">Salvar</button>
+    </div>`);
+}
+
+function saveSkill() {
+  const name  = document.getElementById('sk-name')?.value?.trim();
+  const emoji = document.getElementById('sk-emoji')?.value?.trim() || '⚡';
+  const level = parseInt(document.getElementById('sk-num')?.value) || 30;
+  if (!name) { showToast('Informe o nome!', '⚠️'); return; }
+  data.skills.push({ id: Date.now(), name, emoji, level: Math.min(100, Math.max(0, level)) });
+  DB.save();
+  closeModal();
+  renderSkills();
+  showToast('Habilidade adicionada!', '⚡');
+}
+
+// ── DIARY ──
+function renderDiary() {
+  const el = document.getElementById('diary-container');
+  if (!el) return;
+  if (!data.diary.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📖</div><h3>Diário vazio</h3><p>Registre o que você aprendeu hoje.</p></div>`;
+    return;
+  }
+  el.innerHTML = data.diary.slice(0, 6).map(e => `
+    <div class="diary-entry">
+      <div class="diary-date">${e.date}</div>
+      <div class="diary-text">${e.text}</div>
+    </div>`).join('');
+}
+
+function openDiaryModal() {
+  openModal(`
+    <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+    <div class="modal-title">📖 Diário de Hoje</div>
+    <div class="form-group">
+      <label class="form-label">O que você aprendeu ou conquistou hoje?</label>
+      <textarea class="form-control" id="diary-text" rows="6" placeholder="Escreva seus aprendizados, insights, vitórias do dia..."></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveDiary()">Salvar Registro</button>
+    </div>`);
+}
+
+function saveDiary() {
+  const text = document.getElementById('diary-text')?.value?.trim();
+  if (!text) { showToast('Escreva algo primeiro!', '⚠️'); return; }
+  data.diary.unshift({
+    id: Date.now(), text,
+    date: new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  });
+  DB.save();
+  closeModal();
+  renderDiary();
+  showToast('Registro salvo! 📖', '✅');
+}
+
+// ── RADAR ──
+let radarChart;
+const radarKeys = ['fin','car','sau','rel','con'];
+const radarLabels = ['Finanças','Carreira','Saúde','Relacionamentos','Conhecimento'];
+
+function renderRadar() {
+  const r = data.radarValues;
+  radarKeys.forEach(k => {
+    const el = document.getElementById('rad-' + k);
+    if (el) el.textContent = r[k];
+  });
+
+  // Sliders
+  const slidersEl = document.getElementById('radar-sliders');
+  if (slidersEl) {
+    slidersEl.innerHTML = radarKeys.map((k, i) => `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:12px;color:var(--text2);width:110px">${radarLabels[i]}</span>
+        <input type="range" min="0" max="100" value="${r[k]}" style="flex:1;accent-color:var(--accent)" oninput="updateRadar('${k}',this.value)">
+        <span style="font-family:var(--font-mono);font-size:12px;width:30px;text-align:right" id="radar-num-${k}">${r[k]}</span>
+      </div>`).join('');
+  }
+
+  destroyChart(radarChart);
+  const ctx = document.getElementById('radar-chart');
+  if (!ctx) return;
+  radarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: ['Fin.','Carreira','Saúde','Relac.','Conhec.'],
+      datasets: [{
+        data: radarKeys.map(k => r[k]),
+        borderColor: '#6C63FF', backgroundColor: 'rgba(108,99,255,0.15)',
+        pointBackgroundColor: '#6C63FF', pointRadius: 4, borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: false,
+      plugins: { legend: { display: false } },
+      scales: { r: { min: 0, max: 100,
+        grid: { color: 'rgba(255,255,255,0.06)' },
+        angleLines: { color: 'rgba(255,255,255,0.06)' },
+        pointLabels: { color: '#9090B0', font: { size: 10 } },
+        ticks: { display: false }
+      }}
+    }
+  });
+}
+
+function updateRadar(key, val) {
+  data.radarValues[key] = parseInt(val) || 0;
+  const numEl = document.getElementById('radar-num-' + key);
+  if (numEl) numEl.textContent = val;
+  const labelEl = document.getElementById('rad-' + key);
+  if (labelEl) labelEl.textContent = val;
+  // Update chart data live
+  if (radarChart) { radarChart.data.datasets[0].data = radarKeys.map(k => data.radarValues[k]); radarChart.update(); }
+  DB.save();
+}
+
+renderHabits();
+renderSkills();
+renderDiary();
+renderRadar();
+</script>
+</body>
+</html>

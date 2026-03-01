@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyCore — Conquistas</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="bg-orb bg-orb-1"></div><div class="bg-orb bg-orb-2"></div><div class="bg-orb bg-orb-3"></div>
+
+<div class="layout">
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><div class="logo-icon glow-pulse">⚡</div><div class="logo-text">My<span>Core</span></div></div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <a class="nav-item" href="dashboard.html"><i class="fas fa-th-large"></i><span class="nav-label-text">Dashboard</span></a>
+      <a class="nav-item" href="financas.html"><i class="fas fa-wallet"></i><span class="nav-label-text">Finanças</span></a>
+      <div class="nav-section-label">Crescimento</div>
+      <a class="nav-item" href="metas.html"><i class="fas fa-bullseye"></i><span class="nav-label-text">Metas & Objetivos</span><span class="nav-badge" id="badge-metas">0</span></a>
+      <a class="nav-item" href="desenvolvimento.html"><i class="fas fa-seedling"></i><span class="nav-label-text">Desenvolvimento</span></a>
+      <a class="nav-item active" href="conquistas.html"><i class="fas fa-trophy"></i><span class="nav-label-text">Conquistas</span></a>
+      <div class="nav-section-label">Análise</div>
+      <a class="nav-item" href="relatorios.html"><i class="fas fa-chart-line"></i><span class="nav-label-text">Relatórios</span></a>
+      <a class="nav-item" href="configuracoes.html"><i class="fas fa-cog"></i><span class="nav-label-text">Configurações</span></a>
+    </div>
+    <div class="sidebar-footer">
+      <button class="toggle-sidebar-btn" id="sidebar-toggle-btn"><i class="fas fa-chevron-left" id="sidebar-toggle-icon"></i><span class="nav-label-text">Recolher menu</span></button>
+    </div>
+  </nav>
+
+  <div class="main" id="main">
+    <header class="topbar">
+      <button class="hamburger-btn" id="hamburger-btn"><i class="fas fa-bars"></i></button>
+      <div class="topbar-title">Conquistas</div>
+      <div class="topbar-date" id="topbar-date"></div>
+      <div class="topbar-score"><i class="fas fa-star" style="color:var(--accent2)"></i><span style="color:var(--text2);font-size:13px">Life Score</span><span class="score-badge" id="life-score-top">—</span></div>
+      <div class="topbar-user" onclick="Auth.logout()"><i class="fas fa-user-circle" style="color:var(--accent)"></i><span id="topbar-username">—</span><i class="fas fa-sign-out-alt" style="color:var(--text3);margin-left:4px"></i></div>
+    </header>
+
+    <main class="content" id="main-content">
+      <div class="page-body">
+        <div class="section-title" style="margin-bottom:4px">Conquistas</div>
+        <div class="section-sub" style="margin-bottom:20px">Seu hall da fama pessoal. Cada troféu, um capítulo da sua história.</div>
+
+        <!-- Progress bar -->
+        <div class="card" style="margin-bottom:24px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <span style="font-weight:600">Progresso Geral</span>
+            <span style="font-family:var(--font-mono);color:var(--accent)" id="ach-progress-text">0 / 0</span>
+          </div>
+          <div class="progress-wrap"><div class="progress-bar gold" id="ach-progress-bar" style="width:0%"></div></div>
+        </div>
+
+        <!-- Category filter -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px" id="cat-filters">
+          <div class="chip selected" onclick="filterAch('all',this)">Todas</div>
+          <div class="chip" onclick="filterAch('financas',this)">💰 Finanças</div>
+          <div class="chip" onclick="filterAch('metas',this)">🎯 Metas</div>
+          <div class="chip" onclick="filterAch('habitos',this)">🌱 Hábitos</div>
+          <div class="chip" onclick="filterAch('desenvolvimento',this)">⚡ Desenvolvimento</div>
+          <div class="chip" onclick="filterAch('especial',this)">⭐ Especiais</div>
+        </div>
+
+        <div class="achievement-grid" id="achievements-grid"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay"><div class="modal" id="modal-box"></div></div>
+<div class="toast" id="toast"><span class="toast-icon" id="toast-icon">✅</span><span id="toast-msg"></span></div>
+
+<script src="../js/auth.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/utils.js"></script>
+<script>
+const currentUser = Auth.requireAuth('../index.html');
+if (!currentUser) throw new Error();
+const data = DB.load(currentUser.email);
+
+updateTopbarDate(); updateTopbarUser(currentUser); initSidebar(); initModalOverlay(); initSmoothScroll('main-content');
+document.getElementById('life-score-top').textContent = calcLifeScore(data).total;
+const badge = document.getElementById('badge-metas');
+if (badge) { badge.textContent = data.goals.filter(g => g.progress < 100).length; }
+
+// ── ACHIEVEMENTS DEFINITION ──
+const ACHIEVEMENTS = [
+  // FINANÇAS
+  { id:'first_tx',    name:'Primeiro Passo',      desc:'Registrou sua 1ª transação', icon:'🚀', badge:'silver',   cat:'financas',     check: d => d.transactions.length >= 1 },
+  { id:'tx_10',       name:'Registrador',         desc:'10 transações registradas',  icon:'📊', badge:'silver',   cat:'financas',     check: d => d.transactions.length >= 10 },
+  { id:'tx_50',       name:'Organizador',         desc:'50 transações registradas',  icon:'📋', badge:'gold',     cat:'financas',     check: d => d.transactions.length >= 50 },
+  { id:'tx_100',      name:'Mestre Financeiro',   desc:'100 transações registradas', icon:'💎', badge:'platinum', cat:'financas',     check: d => d.transactions.length >= 100 },
+  { id:'positive_balance', name:'No Azul',        desc:'Saldo positivo registrado',  icon:'💚', badge:'silver',   cat:'financas',     check: d => { const r=d.transactions.filter(t=>t.type==='receita').reduce((s,t)=>s+t.val,0); const e=d.transactions.filter(t=>t.type==='despesa').reduce((s,t)=>s+t.val,0); return r-e>0; } },
+  { id:'investor',    name:'Investidor',          desc:'Criou primeiro investimento', icon:'📈', badge:'silver',   cat:'financas',     check: d => d.transactions.some(t => t.type === 'investimento') },
+  { id:'big_investor','Investidor Sério',         desc:'R$1.000 em investimentos',   icon:'🏦', badge:'gold',     cat:'financas',     check: d => d.transactions.filter(t=>t.type==='investimento').reduce((s,t)=>s+t.val,0) >= 1000 },
+
+  // METAS
+  { id:'first_goal',  name:'Sonhador',            desc:'Criou sua 1ª meta',          icon:'🎯', badge:'silver',   cat:'metas',        check: d => d.goals.length >= 1 },
+  { id:'goals_3',     name:'Planejador',          desc:'Criou 3 metas',              icon:'📝', badge:'silver',   cat:'metas',        check: d => d.goals.length >= 3 },
+  { id:'goals_5',     name:'Visionário',          desc:'Criou 5 metas',              icon:'🌟', badge:'gold',     cat:'metas',        check: d => d.goals.length >= 5 },
+  { id:'goals_10',    name:'Estrategista',        desc:'10 metas criadas',           icon:'♟️', badge:'platinum', cat:'metas',        check: d => d.goals.length >= 10 },
+  { id:'goal_done',   name:'Realizador',          desc:'Concluiu 1 meta (100%)',     icon:'🏆', badge:'gold',     cat:'metas',        check: d => d.goals.some(g => g.progress >= 100) },
+  { id:'goals_done_3',name:'Campeão',             desc:'Concluiu 3 metas',           icon:'👑', badge:'platinum', cat:'metas',        check: d => d.goals.filter(g=>g.progress>=100).length >= 3 },
+  { id:'piggy_saver', name:'Poupador',            desc:'Guardou R$100 num cofrinho', icon:'🐷', badge:'silver',   cat:'metas',        check: d => d.goals.some(g => (g.saved||0) >= 100) },
+
+  // HÁBITOS
+  { id:'first_habit', name:'Construtor',          desc:'Criou seu 1º hábito',        icon:'🌱', badge:'silver',   cat:'habitos',      check: d => d.habits.length >= 1 },
+  { id:'habits_3',    name:'Disciplinado',        desc:'3 hábitos ativos',           icon:'💪', badge:'silver',   cat:'habitos',      check: d => d.habits.length >= 3 },
+  { id:'habits_7',    name:'Guerreiro',           desc:'7 hábitos simultâneos',      icon:'⚔️', badge:'gold',     cat:'habitos',      check: d => d.habits.length >= 7 },
+  { id:'streak_3',    name:'Em Sequência',        desc:'3 dias de streak em hábito', icon:'🔥', badge:'bronze',   cat:'habitos',      check: d => d.habits.some(h => h.streak >= 3) },
+  { id:'streak_7',    name:'Semana Perfeita',     desc:'7 dias de streak',           icon:'🔥', badge:'silver',   cat:'habitos',      check: d => d.habits.some(h => h.streak >= 7) },
+  { id:'streak_30',   name:'Implacável',          desc:'30 dias de streak',          icon:'⚡', badge:'gold',     cat:'habitos',      check: d => d.habits.some(h => h.streak >= 30) },
+  { id:'streak_100',  name:'Lenda Viva',          desc:'100 dias de streak',         icon:'🌋', badge:'platinum', cat:'habitos',      check: d => d.habits.some(h => h.streak >= 100) },
+  { id:'perfect_day', name:'Dia Perfeito',        desc:'Todos os hábitos em um dia', icon:'🌞', badge:'gold',     cat:'habitos',      check: d => { if(!d.habits.length) return false; const t=today(); return d.habits.every(h => h.checkedDates?.includes(t)); } },
+
+  // DESENVOLVIMENTO
+  { id:'first_skill', name:'Aprendiz',            desc:'Adicionou 1 habilidade',     icon:'📚', badge:'silver',   cat:'desenvolvimento', check: d => d.skills.length >= 1 },
+  { id:'skills_3',    name:'Soldado',             desc:'Adicionou 3 habilidades',    icon:'🛡️', badge:'silver',   cat:'desenvolvimento', check: d => d.skills.length >= 3 },
+  { id:'skills_5',    name:'Especialista',        desc:'5 habilidades cadastradas',  icon:'🎖️', badge:'gold',     cat:'desenvolvimento', check: d => d.skills.length >= 5 },
+  { id:'skill_master',name:'Mestre da Arte',      desc:'Uma habilidade em nível 90+',icon:'🧙', badge:'gold',     cat:'desenvolvimento', check: d => d.skills.some(s => s.level >= 90) },
+  { id:'all_master',  name:'Polímata',            desc:'Todas as habilidades ≥ 70',  icon:'🧠', badge:'platinum', cat:'desenvolvimento', check: d => d.skills.length >= 3 && d.skills.every(s => s.level >= 70) },
+  { id:'first_diary', name:'Reflexivo',           desc:'Primeiro registro no diário',icon:'✍️', badge:'silver',   cat:'desenvolvimento', check: d => d.diary.length >= 1 },
+  { id:'diary_10',    name:'Cronista',            desc:'10 registros no diário',     icon:'📓', badge:'gold',     cat:'desenvolvimento', check: d => d.diary.length >= 10 },
+
+  // ESPECIAIS
+  { id:'life_50',     name:'No Caminho Certo',    desc:'Life Score acima de 50',     icon:'⭐', badge:'silver',   cat:'especial',     check: d => calcLifeScore(d).total >= 50 },
+  { id:'life_75',     name:'Alta Performance',    desc:'Life Score acima de 75',     icon:'🌠', badge:'gold',     cat:'especial',     check: d => calcLifeScore(d).total >= 75 },
+  { id:'life_90',     name:'Elite',               desc:'Life Score acima de 90',     icon:'💫', badge:'platinum', cat:'especial',     check: d => calcLifeScore(d).total >= 90 },
+  { id:'all_in_one',  name:'Completo',            desc:'Tem dados em todas as áreas',icon:'🎭', badge:'platinum', cat:'especial',     check: d => d.transactions.length && d.goals.length && d.habits.length && d.skills.length && d.diary.length },
+];
+
+// Fix object syntax issue (one bad entry)
+ACHIEVEMENTS[11].name = 'Investidor Sério';
+
+let currentFilter = 'all';
+
+function filterAch(cat, el) {
+  currentFilter = cat;
+  document.querySelectorAll('#cat-filters .chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  renderAchievements();
+}
+
+function checkAndUnlock() {
+  if (!data.achievements) data.achievements = [];
+  let newUnlock = false;
+  ACHIEVEMENTS.forEach(a => {
+    if (!data.achievements.includes(a.id) && a.check(data)) {
+      data.achievements.push(a.id);
+      newUnlock = true;
+      setTimeout(() => showToast(`🏆 Conquista desbloqueada: ${a.name}!`, a.icon), 600);
+    }
+  });
+  if (newUnlock) DB.save();
+}
+
+function renderAchievements() {
+  checkAndUnlock();
+
+  const unlocked = data.achievements || [];
+  const total = ACHIEVEMENTS.length;
+  const done  = ACHIEVEMENTS.filter(a => unlocked.includes(a.id)).length;
+
+  document.getElementById('ach-progress-text').textContent = `${done} / ${total}`;
+  document.getElementById('ach-progress-bar').style.width = (done / total * 100) + '%';
+
+  const filtered = currentFilter === 'all' ? ACHIEVEMENTS : ACHIEVEMENTS.filter(a => a.cat === currentFilter);
+  // Sort: unlocked first
+  const sorted = [...filtered].sort((a, b) => unlocked.includes(b.id) - unlocked.includes(a.id));
+
+  const badgeColors = {
+    bronze: 'bronze', silver: 'silver', gold: 'gold', platinum: 'platinum'
+  };
+
+  document.getElementById('achievements-grid').innerHTML = sorted.map(a => {
+    const isUnlocked = unlocked.includes(a.id);
+    return `
+    <div class="achievement-card ${isUnlocked ? 'unlocked' : 'locked'}">
+      <div class="achievement-icon">${a.icon}</div>
+      <div class="achievement-name">${a.name}</div>
+      <div class="achievement-desc">${a.desc}</div>
+      <div class="achievement-badge ${isUnlocked ? badgeColors[a.badge] || 'silver' : 'locked-badge'}">${isUnlocked ? a.badge.toUpperCase() : 'BLOQUEADO'}</div>
+    </div>`;
+  }).join('');
+}
+
+renderAchievements();
+</script>
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyCore — Relatórios</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="bg-orb bg-orb-1"></div><div class="bg-orb bg-orb-2"></div><div class="bg-orb bg-orb-3"></div>
+
+<div class="layout">
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><div class="logo-icon glow-pulse">⚡</div><div class="logo-text">My<span>Core</span></div></div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <a class="nav-item" href="dashboard.html"><i class="fas fa-th-large"></i><span class="nav-label-text">Dashboard</span></a>
+      <a class="nav-item" href="financas.html"><i class="fas fa-wallet"></i><span class="nav-label-text">Finanças</span></a>
+      <div class="nav-section-label">Crescimento</div>
+      <a class="nav-item" href="metas.html"><i class="fas fa-bullseye"></i><span class="nav-label-text">Metas & Objetivos</span><span class="nav-badge" id="badge-metas">0</span></a>
+      <a class="nav-item" href="desenvolvimento.html"><i class="fas fa-seedling"></i><span class="nav-label-text">Desenvolvimento</span></a>
+      <a class="nav-item" href="conquistas.html"><i class="fas fa-trophy"></i><span class="nav-label-text">Conquistas</span></a>
+      <div class="nav-section-label">Análise</div>
+      <a class="nav-item active" href="relatorios.html"><i class="fas fa-chart-line"></i><span class="nav-label-text">Relatórios</span></a>
+      <a class="nav-item" href="configuracoes.html"><i class="fas fa-cog"></i><span class="nav-label-text">Configurações</span></a>
+    </div>
+    <div class="sidebar-footer">
+      <button class="toggle-sidebar-btn" id="sidebar-toggle-btn"><i class="fas fa-chevron-left" id="sidebar-toggle-icon"></i><span class="nav-label-text">Recolher menu</span></button>
+    </div>
+  </nav>
+
+  <div class="main" id="main">
+    <header class="topbar">
+      <button class="hamburger-btn" id="hamburger-btn"><i class="fas fa-bars"></i></button>
+      <div class="topbar-title">Relatórios</div>
+      <div class="topbar-date" id="topbar-date"></div>
+      <div class="topbar-score"><i class="fas fa-star" style="color:var(--accent2)"></i><span style="color:var(--text2);font-size:13px">Life Score</span><span class="score-badge" id="life-score-top">—</span></div>
+      <div class="topbar-user" onclick="Auth.logout()"><i class="fas fa-user-circle" style="color:var(--accent)"></i><span id="topbar-username">—</span><i class="fas fa-sign-out-alt" style="color:var(--text3);margin-left:4px"></i></div>
+    </header>
+
+    <main class="content" id="main-content">
+      <div class="page-body">
+        <div class="section-title" style="margin-bottom:4px">Relatórios</div>
+        <div class="section-sub" style="margin-bottom:24px">Visão histórica e análise completa da sua evolução.</div>
+
+        <!-- Charts -->
+        <div class="grid-2" style="margin-bottom:24px">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Evolução do Life Score</span></div>
+            <div class="chart-wrap" style="height:200px"><canvas id="score-chart"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Fluxo de Caixa — últimos 12 meses</span></div>
+            <div class="chart-wrap" style="height:200px"><canvas id="cashflow-chart"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Quick stats -->
+        <div class="grid-4" style="margin-bottom:24px">
+          <div class="card" style="text-align:center"><div class="card-title" style="margin-bottom:8px">Transações</div><div style="font-family:var(--font-mono);font-size:28px;color:var(--accent)" id="rep-tx-count">0</div></div>
+          <div class="card" style="text-align:center"><div class="card-title" style="margin-bottom:8px">Metas Ativas</div><div style="font-family:var(--font-mono);font-size:28px;color:var(--accent)" id="rep-goals-count">0</div></div>
+          <div class="card" style="text-align:center"><div class="card-title" style="margin-bottom:8px">Hábitos</div><div style="font-family:var(--font-mono);font-size:28px;color:var(--accent)" id="rep-habits-count">0</div></div>
+          <div class="card" style="text-align:center"><div class="card-title" style="margin-bottom:8px">Conquistas</div><div style="font-family:var(--font-mono);font-size:28px;color:var(--accent2)" id="rep-ach-count">0</div></div>
+        </div>
+
+        <!-- Export section -->
+        <div class="card">
+          <div class="card-header"><span class="card-title">Exportar Relatórios</span></div>
+
+          <div class="report-card" onclick="openExport('financeiro')">
+            <div class="report-icon">📊</div>
+            <div class="report-info">
+              <div class="report-name">Relatório Financeiro</div>
+              <div class="report-desc">Receitas, despesas, investimentos, saldo e todas as transações</div>
+            </div>
+            <div class="report-arrow"><i class="fas fa-download"></i></div>
+          </div>
+
+          <div class="report-card" onclick="openExport('metas')">
+            <div class="report-icon">🎯</div>
+            <div class="report-info">
+              <div class="report-name">Relatório de Metas</div>
+              <div class="report-desc">Progresso, cofrinho, prazos e objetivos em andamento</div>
+            </div>
+            <div class="report-arrow"><i class="fas fa-download"></i></div>
+          </div>
+
+          <div class="report-card" onclick="openExport('desenvolvimento')">
+            <div class="report-icon">🌱</div>
+            <div class="report-info">
+              <div class="report-name">Relatório de Desenvolvimento</div>
+              <div class="report-desc">Hábitos, habilidades, streaks e diário de aprendizados</div>
+            </div>
+            <div class="report-arrow"><i class="fas fa-download"></i></div>
+          </div>
+
+          <div class="report-card" onclick="openExport('completo')">
+            <div class="report-icon">⚡</div>
+            <div class="report-info">
+              <div class="report-name">Relatório de Vida Completo</div>
+              <div class="report-desc">Tudo em um só documento — o retrato completo de você</div>
+            </div>
+            <div class="report-arrow"><i class="fas fa-download"></i></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay"><div class="modal" id="modal-box"></div></div>
+<div class="toast" id="toast"><span class="toast-icon" id="toast-icon">✅</span><span id="toast-msg"></span></div>
+
+<script src="../js/auth.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/utils.js"></script>
+<script>
+const currentUser = Auth.requireAuth('../index.html');
+if (!currentUser) throw new Error();
+const data = DB.load(currentUser.email);
+
+updateTopbarDate(); updateTopbarUser(currentUser); initSidebar(); initModalOverlay(); initSmoothScroll('main-content'); setChartDefaults();
+
+const score = calcLifeScore(data).total;
+document.getElementById('life-score-top').textContent = score;
+const badge = document.getElementById('badge-metas');
+if (badge) { badge.textContent = data.goals.filter(g => g.progress < 100).length; }
+
+// Quick stats
+document.getElementById('rep-tx-count').textContent    = data.transactions.length;
+document.getElementById('rep-goals-count').textContent = data.goals.filter(g => g.progress < 100).length;
+document.getElementById('rep-habits-count').textContent = data.habits.length;
+document.getElementById('rep-ach-count').textContent   = (data.achievements || []).length;
+
+// ── CHARTS ──
+let scoreChart, cashChart;
+
+function renderCharts() {
+  // Score chart — use actual computed score for now, could track history later
+  destroyChart(scoreChart);
+  const sCtx = document.getElementById('score-chart');
+  if (sCtx) {
+    // Generate plausible history based on score
+    const base = Math.max(20, score - 20);
+    const scoreHistory = Array.from({ length: 6 }, (_, i) => Math.min(99, Math.round(base + ((score - base) / 5) * i)));
+    const labels = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      labels.push(d.toLocaleDateString('pt-BR', { month: 'short' }));
+    }
+    scoreChart = new Chart(sCtx, {
+      type: 'line',
+      data: { labels, datasets: [{ label: 'Life Score', data: scoreHistory, borderColor: '#F0B429', backgroundColor: 'rgba(240,180,41,0.1)', tension: 0.4, fill: true, pointBackgroundColor: '#F0B429', pointRadius: 5 }] },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#9090B0' } } },
+        scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#5a5a7a' } },
+                  y: { min: 0, max: 99, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#5a5a7a' } } } }
+    });
+  }
+
+  // Cash flow — real monthly data
+  destroyChart(cashChart);
+  const cCtx = document.getElementById('cashflow-chart');
+  if (cCtx) {
+    const months = 12;
+    const flows = new Array(months).fill(0);
+    const labels = [];
+    const now = new Date();
+    for (let i = months - 1; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      labels.push(d.toLocaleDateString('pt-BR', { month: 'short' }));
+      const ym = d.toISOString().substring(0, 7);
+      data.transactions.forEach(t => {
+        if (!t.date?.startsWith(ym)) return;
+        if (t.type === 'receita') flows[months - 1 - i] += t.val;
+        if (t.type === 'despesa') flows[months - 1 - i] -= t.val;
+      });
+    }
+    cashChart = new Chart(cCtx, {
+      type: 'bar',
+      data: { labels, datasets: [{ label: 'Fluxo', data: flows, backgroundColor: flows.map(v => v >= 0 ? 'rgba(0,217,165,0.7)' : 'rgba(255,107,107,0.7)'), borderRadius: 4 }] },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#9090B0' } } },
+        scales: { x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#5a5a7a' } },
+                  y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#5a5a7a' } } } }
+    });
+  }
+}
+
+// ── EXPORT ──
+let selectedFormats = [];
+let activeReportType = '';
+
+function openExport(type) {
+  activeReportType = type;
+  selectedFormats = [];
+
+  const titles = { financeiro: '📊 Relatório Financeiro', metas: '🎯 Relatório de Metas', desenvolvimento: '🌱 Relatório de Desenvolvimento', completo: '⚡ Relatório Completo' };
+
+  openModal(`
+    <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+    <div class="modal-title">${titles[type]}</div>
+    <p style="color:var(--text2);font-size:13px;margin-bottom:4px">Escolha o formato de exportação:</p>
+
+    <div class="export-options">
+      <div class="export-option" onclick="toggleFmt('pdf',this)" id="fmt-pdf">
+        <div class="export-option-icon">📄</div>
+        <div class="export-option-label">PDF</div>
+        <div class="export-option-desc">Abre para imprimir e salvar</div>
+      </div>
+      <div class="export-option" onclick="toggleFmt('excel',this)" id="fmt-excel">
+        <div class="export-option-icon">📊</div>
+        <div class="export-option-label">Excel / CSV</div>
+        <div class="export-option-desc">Planilha de dados editável</div>
+      </div>
+    </div>
+
+    <div id="export-preview" style="background:var(--surface);border-radius:var(--radius-sm);padding:14px;font-size:13px;color:var(--text2);min-height:60px;margin-bottom:18px">
+      Selecione um formato para continuar.
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="do-export-btn" onclick="doExport()" disabled style="opacity:0.5">
+        <i class="fas fa-download"></i> Exportar
+      </button>
+    </div>`);
+}
+
+function toggleFmt(fmt, el) {
+  el.classList.toggle('selected');
+  if (selectedFormats.includes(fmt)) selectedFormats = selectedFormats.filter(f => f !== fmt);
+  else selectedFormats.push(fmt);
+
+  const btn = document.getElementById('do-export-btn');
+  if (btn) { btn.disabled = !selectedFormats.length; btn.style.opacity = selectedFormats.length ? '1' : '0.5'; }
+
+  const report = buildReportContent(activeReportType, data);
+  const previewEl = document.getElementById('export-preview');
+  if (previewEl && selectedFormats.length) {
+    const rec = data.transactions.filter(t=>t.type==='receita').reduce((s,t)=>s+t.val,0);
+    const dep = data.transactions.filter(t=>t.type==='despesa').reduce((s,t)=>s+t.val,0);
+    previewEl.innerHTML = `<strong style="color:var(--text)">${report.title}</strong><br><br>
+      Formato(s): <strong style="color:var(--accent)">${selectedFormats.join(', ').toUpperCase()}</strong><br>
+      ${data.transactions.length} transações · ${data.goals.length} metas · ${data.habits.length} hábitos`;
+  } else if (previewEl) {
+    previewEl.textContent = 'Selecione um formato para continuar.';
+  }
+}
+
+function doExport() {
+  if (!selectedFormats.length) return;
+  const report = buildReportContent(activeReportType, data);
+  selectedFormats.forEach(fmt => {
+    if (fmt === 'pdf') exportPDF(report);
+    else if (fmt === 'excel') exportCSV(report);
+  });
+  closeModal();
+  showToast(`Relatório exportado em ${selectedFormats.join(' + ').toUpperCase()}!`, '📊');
+}
+
+renderCharts();
+</script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyCore — Finanças</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="bg-orb bg-orb-1"></div><div class="bg-orb bg-orb-2"></div><div class="bg-orb bg-orb-3"></div>
+
+<div class="layout">
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><div class="logo-icon glow-pulse">⚡</div><div class="logo-text">My<span>Core</span></div></div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <a class="nav-item" data-page="dashboard" href="dashboard.html"><i class="fas fa-th-large"></i><span class="nav-label-text">Dashboard</span></a>
+      <a class="nav-item active" data-page="financas" href="financas.html"><i class="fas fa-wallet"></i><span class="nav-label-text">Finanças</span></a>
+      <div class="nav-section-label">Crescimento</div>
+      <a class="nav-item" data-page="metas" href="metas.html"><i class="fas fa-bullseye"></i><span class="nav-label-text">Metas & Objetivos</span><span class="nav-badge" id="badge-metas">0</span></a>
+      <a class="nav-item" data-page="desenvolvimento" href="desenvolvimento.html"><i class="fas fa-seedling"></i><span class="nav-label-text">Desenvolvimento</span></a>
+      <a class="nav-item" data-page="conquistas" href="conquistas.html"><i class="fas fa-trophy"></i><span class="nav-label-text">Conquistas</span></a>
+      <div class="nav-section-label">Análise</div>
+      <a class="nav-item" data-page="relatorios" href="relatorios.html"><i class="fas fa-chart-line"></i><span class="nav-label-text">Relatórios</span></a>
+      <a class="nav-item" data-page="configuracoes" href="configuracoes.html"><i class="fas fa-cog"></i><span class="nav-label-text">Configurações</span></a>
+    </div>
+    <div class="sidebar-footer">
+      <button class="toggle-sidebar-btn" id="sidebar-toggle-btn"><i class="fas fa-chevron-left" id="sidebar-toggle-icon"></i><span class="nav-label-text">Recolher menu</span></button>
+    </div>
+  </nav>
+
+  <div class="main" id="main">
+    <header class="topbar">
+      <button class="hamburger-btn" id="hamburger-btn"><i class="fas fa-bars"></i></button>
+      <div class="topbar-title">Finanças</div>
+      <div class="topbar-date" id="topbar-date"></div>
+      <div class="topbar-score"><i class="fas fa-star" style="color:var(--accent2)"></i><span style="color:var(--text2);font-size:13px">Life Score</span><span class="score-badge" id="life-score-top">—</span></div>
+      <div class="topbar-user" onclick="Auth.logout()"><i class="fas fa-user-circle" style="color:var(--accent)"></i><span id="topbar-username">—</span><i class="fas fa-sign-out-alt" style="color:var(--text3);margin-left:4px"></i></div>
+    </header>
+
+    <main class="content" id="main-content">
+      <div class="page-body">
+        <div class="section-header">
+          <div><div class="section-title">Finanças</div><div class="section-sub">Controle completo do seu dinheiro.</div></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-ghost" onclick="openTxModal('receita')"><i class="fas fa-plus" style="color:var(--accent3)"></i> Receita</button>
+            <button class="btn btn-ghost" onclick="openTxModal('despesa')"><i class="fas fa-plus" style="color:var(--accent4)"></i> Despesa</button>
+            <button class="btn btn-primary" onclick="openTxModal('investimento')"><i class="fas fa-chart-line"></i> Investimento</button>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid-3" style="margin-bottom:20px">
+          <div class="card"><div class="card-glow"></div><div class="card-title">Receitas</div><div class="stat-value" id="fin-receita" style="color:var(--accent3)">R$ 0,00</div></div>
+          <div class="card"><div class="card-glow"></div><div class="card-title">Despesas</div><div class="stat-value" id="fin-despesa" style="color:var(--accent4)">R$ 0,00</div></div>
+          <div class="card"><div class="card-glow"></div><div class="card-title">Saldo</div><div class="stat-value" id="fin-saldo">R$ 0,00</div></div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid-2" style="margin-bottom:20px">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Receitas vs Despesas (6 meses)</span></div>
+            <div class="chart-wrap" style="height:220px"><canvas id="fin-bar-chart"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Despesas por Categoria</span></div>
+            <div class="chart-wrap" style="height:220px"><canvas id="fin-cat-chart"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Transactions -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Todas as Transações</span>
+            <select class="form-control" style="width:auto;padding:7px 34px 7px 12px;font-size:12px" id="filter-tipo" onchange="renderTxList()">
+              <option value="">Todos</option>
+              <option value="receita">Receitas</option>
+              <option value="despesa">Despesas</option>
+              <option value="investimento">Investimentos</option>
+            </select>
+          </div>
+          <div class="tx-list" id="tx-list"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay"><div class="modal" id="modal-box"></div></div>
+<div class="toast" id="toast"><span class="toast-icon" id="toast-icon">✅</span><span id="toast-msg"></span></div>
+
+<script src="../js/auth.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/utils.js"></script>
+<script>
+const currentUser = Auth.requireAuth('../index.html');
+if (!currentUser) throw new Error();
+const data = DB.load(currentUser.email);
+
+updateTopbarDate(); updateTopbarUser(currentUser); initSidebar(); initModalOverlay(); initSmoothScroll('main-content'); setChartDefaults();
+
+// Badge
+const badgeEl = document.getElementById('badge-metas');
+if (badgeEl) { badgeEl.textContent = data.goals.filter(g => g.progress < 100).length; }
+
+function renderStats() {
+  const rec = data.transactions.filter(t => t.type === 'receita').reduce((s, t) => s + t.val, 0);
+  const dep = data.transactions.filter(t => t.type === 'despesa').reduce((s, t) => s + t.val, 0);
+  const saldo = rec - dep;
+  document.getElementById('fin-receita').textContent = fmtCurrency(rec);
+  document.getElementById('fin-despesa').textContent = fmtCurrency(dep);
+  const el = document.getElementById('fin-saldo');
+  el.textContent = fmtCurrency(saldo);
+  el.style.color = saldo >= 0 ? 'var(--accent3)' : 'var(--accent4)';
+  document.getElementById('life-score-top').textContent = calcLifeScore(data).total;
+}
+
+function renderTxList() {
+  const el = document.getElementById('tx-list');
+  const filter = document.getElementById('filter-tipo')?.value;
+  const items = filter ? data.transactions.filter(t => t.type === filter) : data.transactions;
+  if (!items.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">💰</div><h3>Nenhuma transação</h3><p>Adicione receitas, despesas ou investimentos.</p></div>`;
+    return;
+  }
+  const icons = { receita: '💰', despesa: '💸', investimento: '📈' };
+  const colors = { receita: 'rgba(0,217,165,0.15)', despesa: 'rgba(255,107,107,0.15)', investimento: 'rgba(108,99,255,0.15)' };
+  el.innerHTML = items.map(t => `
+    <div class="tx-item">
+      <div class="tx-icon" style="background:${colors[t.type]}">${icons[t.type]}</div>
+      <div class="tx-info">
+        <div class="tx-name">${t.desc}</div>
+        <div class="tx-cat">${t.cat}</div>
+      </div>
+      <div class="tx-date">${fmtDate(t.date)}</div>
+      <div class="tx-amount ${t.type === 'receita' ? 'income' : t.type === 'investimento' ? 'invest' : 'expense'}">
+        ${t.type === 'receita' ? '+' : t.type === 'investimento' ? '±' : '−'}${fmtCurrency(t.val)}
+      </div>
+      <button onclick="deleteTx(${t.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;padding:4px 6px;margin-left:4px;font-size:13px"><i class="fas fa-trash"></i></button>
+    </div>`).join('');
+}
+
+function deleteTx(id) {
+  if (!confirm('Remover transação?')) return;
+  data.transactions = data.transactions.filter(t => t.id !== id);
+  DB.save();
+  renderAll();
+}
+
+let barChart, catChart;
+function renderCharts() {
+  // Bar chart — real monthly data
+  destroyChart(barChart);
+  const barCtx = document.getElementById('fin-bar-chart');
+  if (barCtx) {
+    const monthlyRec = new Array(6).fill(0);
+    const monthlyDep = new Array(6).fill(0);
+    const labels = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      labels.push(d.toLocaleDateString('pt-BR', { month: 'short' }));
+      const ym = d.toISOString().substring(0, 7);
+      data.transactions.forEach(t => {
+        if (!t.date?.startsWith(ym)) return;
+        if (t.type === 'receita') monthlyRec[5 - i] += t.val;
+        if (t.type === 'despesa') monthlyDep[5 - i] += t.val;
+      });
+    }
+    barChart = new Chart(barCtx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Receitas', data: monthlyRec, backgroundColor: 'rgba(0,217,165,0.7)', borderRadius: 6 },
+          { label: 'Despesas', data: monthlyDep, backgroundColor: 'rgba(255,107,107,0.7)', borderRadius: 6 }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#9090B0', boxWidth: 10 } } },
+        scales: { x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#5a5a7a' } },
+                  y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#5a5a7a' } } } }
+    });
+  }
+
+  // Pie chart — real category data
+  destroyChart(catChart);
+  const catCtx = document.getElementById('fin-cat-chart');
+  if (catCtx) {
+    const cats = {};
+    data.transactions.filter(t => t.type === 'despesa').forEach(t => { cats[t.cat] = (cats[t.cat] || 0) + t.val; });
+    const labels = Object.keys(cats);
+    const vals = Object.values(cats);
+    if (!labels.length) { labels.push('Sem despesas'); vals.push(1); }
+    catChart = new Chart(catCtx, {
+      type: 'doughnut',
+      data: { labels, datasets: [{ data: vals, backgroundColor: ['#6C63FF','#F0B429','#00D9A5','#FF6B6B','#9B8FFF','#FF9B9B','#F0B429'], borderWidth: 0 }] },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'right', labels: { color: '#9090B0', boxWidth: 10, padding: 8, font: { size: 11 } } } } }
+    });
+  }
+}
+
+function openTxModal(type) {
+  const labels = { receita: { title: '💰 Nova Receita', fields: [['💼 Salário','💻 Freelance','🎁 Presente','📈 Rendimento','🔧 Outros']] },
+    despesa: { title: '💸 Nova Despesa', fields: [['🏠 Moradia','🍔 Alimentação','🚗 Transporte','🏥 Saúde','📚 Educação','🎉 Lazer','💳 Dívidas','🔧 Outros']] },
+    investimento: { title: '📈 Novo Investimento', fields: [['🏦 Renda Fixa','📊 Ações','₿ Cripto','🏢 FII','🌍 Internacional','🔧 Outros']] }
+  };
+  const l = labels[type];
+  openModal(`
+    <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+    <div class="modal-title">${l.title}</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Valor (R$)</label>
+        <input type="number" class="form-control" id="tx-val" placeholder="0,00" min="0" step="0.01"></div>
+      <div class="form-group"><label class="form-label">Data</label>
+        <input type="date" class="form-control" id="tx-date" value="${today()}"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Descrição</label>
+      <input type="text" class="form-control" id="tx-desc" placeholder="Ex: Salário de Janeiro..."></div>
+    <div class="form-group"><label class="form-label">Categoria</label>
+      <select class="form-control" id="tx-cat">${l.fields[0].map(o => `<option>${o}</option>`).join('')}</select></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveTx('${type}')">Salvar</button>
+    </div>`);
+}
+
+function saveTx(type) {
+  const val  = parseFloat(document.getElementById('tx-val')?.value);
+  const date = document.getElementById('tx-date')?.value;
+  const desc = document.getElementById('tx-desc')?.value?.trim();
+  const cat  = document.getElementById('tx-cat')?.value;
+  if (!val || val <= 0) { showToast('Informe um valor válido!', '⚠️'); return; }
+  if (!desc) { showToast('Informe uma descrição!', '⚠️'); return; }
+  data.transactions.unshift({ id: Date.now(), type, val, date, desc, cat });
+  DB.save();
+  closeModal();
+  renderAll();
+  showToast('Transação salva!', type === 'receita' ? '💰' : type === 'investimento' ? '📈' : '💸');
+}
+
+function renderAll() {
+  renderStats();
+  renderTxList();
+  renderCharts();
+}
+
+renderAll();
+</script>
+</body>
+</html>
